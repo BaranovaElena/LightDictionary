@@ -1,13 +1,21 @@
 package com.example.lightdictionary.presenter
 
 import com.example.lightdictionary.data.LoadWordsState
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
-import javax.inject.Inject
+import kotlinx.coroutines.*
 
-class MainViewModel @Inject constructor(private val interactor: MainInteractor) : MainController.BaseViewModel() {
-    private val disposable = CompositeDisposable()
+class MainViewModel(private val interactor: MainController.Interactor) : MainController.BaseViewModel() {
+
+    private val coroutineScope = CoroutineScope(
+        Dispatchers.Main
+                + SupervisorJob()
+                + CoroutineExceptionHandler { _, throwable ->
+            loadStateLiveDataMutable.postValue(LoadWordsState.Error(throwable))
+        })
+
+    override fun onCleared() {
+        coroutineScope.coroutineContext.cancelChildren()
+        super.onCleared()
+    }
 
     override fun onSearchScreenOpened() {
         searchLiveDataMutable.value = false
@@ -18,16 +26,11 @@ class MainViewModel @Inject constructor(private val interactor: MainInteractor) 
     }
 
     override fun onGetInputWord(word: String) {
-        disposable.add(
-            interactor.getData(word)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.io())
-                .doOnSubscribe {
-                    loadStateLiveDataMutable.value = LoadWordsState.Loading
-                }
-                .subscribe { state ->
-                    loadStateLiveDataMutable.value = state
-                }
-        )
+        loadStateLiveDataMutable.value = LoadWordsState.Loading
+        coroutineScope.launch {
+            withContext(Dispatchers.IO) {
+                loadStateLiveDataMutable.postValue(interactor.getData(word))
+            }
+        }
     }
 }
