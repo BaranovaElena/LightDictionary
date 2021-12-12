@@ -8,13 +8,13 @@ import com.example.lightdictionary.R
 import com.example.lightdictionary.data.WordEntity
 import com.example.lightdictionary.databinding.ItemWordMainBinding
 
-class MainAdapter : RecyclerView.Adapter<MainViewHolder>() {
+class MainAdapter(private var onListItemClick: (WordEntity) -> Unit) : RecyclerView.Adapter<MainViewHolder>() {
     private var list: List<WordEntity> = emptyList()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = MainViewHolder(parent)
     override fun getItemCount() = list.size
     override fun onBindViewHolder(holder: MainViewHolder, position: Int) {
-        holder.bind(list[position])
+        holder.bind(list[position], onListItemClick)
     }
 
     fun updateList(list: List<WordEntity>) {
@@ -28,16 +28,14 @@ class MainViewHolder(parent: ViewGroup) : RecyclerView.ViewHolder(
 ) {
     private val binding by viewBinding(ItemWordMainBinding::bind)
 
-    fun bind(word: WordEntity) {
+    fun bind(word: WordEntity, onListItemClick: (WordEntity) -> Unit) {
         binding.itemWordMainMeaningTextView.text = word.text
 
-        val sb = StringBuilder()
-        for (translation in word.meanings) {
-            sb.append(translation.translation.text)
-            if (translation != word.meanings.last()) {
-                sb.append(" / ")
-            }
-        }
-        binding.itemWordMainTranslationTextView.text = sb.toString()
+        val meanings: String = word.meanings.joinToString(
+            separator = " / ",
+            transform = { meaningsEntity -> meaningsEntity.translation.text }
+        )
+        binding.itemWordMainTranslationTextView.text = meanings
+        binding.root.setOnClickListener { onListItemClick(word) }
     }
 }
