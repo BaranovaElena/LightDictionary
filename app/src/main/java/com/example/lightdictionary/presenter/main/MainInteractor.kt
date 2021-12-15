@@ -1,10 +1,9 @@
 package com.example.lightdictionary.presenter.main
 
-import com.example.lightdictionary.data.HistoryEntity
-import com.example.lightdictionary.data.LoadWordsState
-import com.example.lightdictionary.data.WordEntity
-import com.example.lightdictionary.domain.LoadingWordsRepo
-import com.example.lightdictionary.domain.SavingWordsRepo
+import com.example.model.LoadWordsState
+import com.example.model.WordEntity
+import com.example.repository.LoadingWordsRepo
+import com.example.repository.SavingWordsRepo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
